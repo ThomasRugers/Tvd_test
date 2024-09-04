@@ -45,12 +45,16 @@ def scatterHeatmap(df, title, subtitle):
             house_number = addresses_left[teller]
 
             # Match the house number to the corresponding color and "Gebruik" value
-            color = "lightblue"  # Default color
             gebruik_value = 0
             if house_number in df['House_Number'].values:
                 index = df[df['House_Number'] == house_number].index[0]
-                color = colors[index]
                 gebruik_value = df.loc[index, 'Gebruik']
+
+            # Force white if the usage value is zero
+            if gebruik_value == 0:
+                color = "rgb(255,255,255)"  # Set to white for zero usage
+            else:
+                color = colors[index]  # Use the color from the normalized color list
 
             # Add square shape for left section
             fig.add_shape(
@@ -65,7 +69,7 @@ def scatterHeatmap(df, title, subtitle):
             fig.add_annotation(
                 x=i + 0.5,  # Center of the square
                 y=y_squares - j - 0.3,  # Slightly above the center of the square
-                text=f"{house_number}",  # House number
+                text=f"Gebruik: {gebruik_value}",  # House number
                 showarrow=False,
                 font=dict(size=12, color="black")
             )
@@ -73,7 +77,7 @@ def scatterHeatmap(df, title, subtitle):
             fig.add_annotation(
                 x=i + 0.5,  # Center of the square
                 y=y_squares - j - 0.7,  # Slightly below the center of the square
-                text=f"Gebruik: {gebruik_value}",  # "Gebruik" value
+                text=f"{house_number}",  # "Gebruik" value
                 showarrow=False,
                 font=dict(size=10, color="black")
             )
@@ -91,12 +95,16 @@ def scatterHeatmap(df, title, subtitle):
             house_number = addresses_right[teller]
 
             # Match the house number to the corresponding color and "Gebruik" value
-            color = "lightblue"  # Default color
             gebruik_value = 0
             if house_number in df['House_Number'].values:
                 index = df[df['House_Number'] == house_number].index[0]
-                color = colors[index]
                 gebruik_value = df.loc[index, 'Gebruik']
+
+            # Force white if the usage value is zero
+            if gebruik_value == 0:
+                color = "rgb(255,255,255)"  # Set to white for zero usage
+            else:
+                color = colors[index]  # Use the color from the normalized color list
 
             # Add square shape for right section
             fig.add_shape(
