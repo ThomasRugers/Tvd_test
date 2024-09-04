@@ -82,9 +82,14 @@ def scatterHeatmap(df, title, subtitle):
                 font=dict(size=10, color="black")
             )
 
+    # Calculate the correct y-offset to place the right section at ground level
+    y_offset = len(addresses_left) // x_squares_left - len(
+        addresses_right) // x_squares_right  # Calculate the offset for proper vertical alignment
+
     # Plot the right section of the building
     teller = -1
-    for j in range(y_squares):  # Loop over rows
+    for j in range(
+            len(addresses_right) // x_squares_right):  # Loop over rows in the right section (should match left section's height)
         for i in range(x_squares_right):  # Loop over columns for the right section
             teller += 1
 
@@ -106,11 +111,12 @@ def scatterHeatmap(df, title, subtitle):
             else:
                 color = colors[index]  # Use the color from the normalized color list
 
-            # Add square shape for right section
+            # Add square shape for right section with adjusted y_offset
             fig.add_shape(
                 type="rect",
                 x0=x_squares_left + i, x1=x_squares_left + i + 1,  # Shift x-axis to the right section
-                y0=y_squares - j - 1, y1=y_squares - j,  # Defines the y-axis position
+                y0=y_squares - j - 1 - y_offset, y1=y_squares - j - y_offset,
+                # Adjust y-axis position with y_offset to align with left section
                 fillcolor=color,  # Set color based on "Gebruik"
                 line=dict(color="black")
             )
@@ -118,16 +124,16 @@ def scatterHeatmap(df, title, subtitle):
             # Add annotation with house number and "Gebruik" value for right section
             fig.add_annotation(
                 x=x_squares_left + i + 0.5,  # Center of the square in the right section
-                y=y_squares - j - 0.3,  # Slightly above the center of the square
-                text=f"{house_number}",  # House number
+                y=y_squares - j - 0.3 - y_offset,  # Slightly above the center of the square with y_offset
+                text=f"Gebruik: {gebruik_value}",  # House number
                 showarrow=False,
                 font=dict(size=12, color="black")
             )
 
             fig.add_annotation(
                 x=x_squares_left + i + 0.5,  # Center of the square in the right section
-                y=y_squares - j - 0.7,  # Slightly below the center of the square
-                text=f"Gebruik: {gebruik_value}",  # "Gebruik" value
+                y=y_squares - j - 0.7 - y_offset,  # Slightly below the center of the square with y_offset
+                text=f"{house_number}",  # "Gebruik" value
                 showarrow=False,
                 font=dict(size=10, color="black")
             )
