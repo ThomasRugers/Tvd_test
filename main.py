@@ -71,7 +71,7 @@ def scatterHeatmap(df, title, subtitle):
                 y=y_squares - j - 0.3,  # Slightly above the center of the square
                 text=f"Gebruik: {gebruik_value}",  # House number
                 showarrow=False,
-                font=dict(size=12, color="black")
+                font=dict(size=15, color="black")
             )
 
             fig.add_annotation(
@@ -85,6 +85,9 @@ def scatterHeatmap(df, title, subtitle):
     # Calculate the correct y-offset to place the right section at ground level
     y_offset = len(addresses_left) // x_squares_left - len(
         addresses_right) // x_squares_right  # Calculate the offset for proper vertical alignment
+
+    # Define the horizontal offset for the right section
+    x_offset = 1  # Adjust this value to increase or decrease the gap between the sections
 
     # Plot the right section of the building
     teller = -1
@@ -114,7 +117,7 @@ def scatterHeatmap(df, title, subtitle):
             # Add square shape for right section with adjusted y_offset
             fig.add_shape(
                 type="rect",
-                x0=x_squares_left + i, x1=x_squares_left + i + 1,  # Shift x-axis to the right section
+                x0=x_squares_left + i + x_offset, x1=x_squares_left + i + 1 + x_offset,  # Add x_offset to create space
                 y0=y_squares - j - 1 - y_offset, y1=y_squares - j - y_offset,
                 # Adjust y-axis position with y_offset to align with left section
                 fillcolor=color,  # Set color based on "Gebruik"
@@ -123,15 +126,15 @@ def scatterHeatmap(df, title, subtitle):
 
             # Add annotation with house number and "Gebruik" value for right section
             fig.add_annotation(
-                x=x_squares_left + i + 0.5,  # Center of the square in the right section
+                x=x_squares_left + i + 0.5 + x_offset,  # Center of the square in the right section
                 y=y_squares - j - 0.3 - y_offset,  # Slightly above the center of the square with y_offset
                 text=f"Gebruik: {gebruik_value}",  # House number
                 showarrow=False,
-                font=dict(size=12, color="black")
+                font=dict(size=15, color="black")
             )
 
             fig.add_annotation(
-                x=x_squares_left + i + 0.5,  # Center of the square in the right section
+                x=x_squares_left + i + 0.5 + x_offset,  # Center of the square in the right section
                 y=y_squares - j - 0.7 - y_offset,  # Slightly below the center of the square with y_offset
                 text=f"{house_number}",  # "Gebruik" value
                 showarrow=False,
@@ -140,12 +143,16 @@ def scatterHeatmap(df, title, subtitle):
 
     # Update the layout to maintain square shapes for both sections
     fig.update_layout(
-        xaxis=dict(showgrid=False, zeroline=False, visible=False, range=[0, x_squares_left + x_squares_right]),
+        autosize=True,  # Automatically adjust the figure size
+        xaxis=dict(showgrid=False, zeroline=False, visible=False,
+                   range=[0, x_squares_left + x_squares_right + x_offset + 2]),
+        # Adjust x-axis range to fit both sections and the gap
         yaxis=dict(showgrid=False, zeroline=False, visible=False, range=[0, y_squares]),
-        width=500 * (aspect_ratio_left + aspect_ratio_right),  # Adjust width for both sections
-        height=500,
+        width=None,  # Let Dash handle the width dynamically
+        height=None,  # Let Dash handle the height dynamically
         title=subtitle,
-        margin=dict(l=10, r=10, t=40, b=10)
+        margin=dict(l=10, r=10, t=40, b=10),
+        paper_bgcolor='rgba(0,0,0,0)',  # Make the background transparent (optional)
     )
 
     # Initialize Dash app
