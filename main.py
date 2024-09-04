@@ -10,6 +10,7 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 
 def scatterHeatmap(df, title, subtitle):
     # Define grid dimensions for both sections
@@ -155,6 +156,7 @@ def scatterHeatmap(df, title, subtitle):
         paper_bgcolor='rgba(0,0,0,0)',  # Make the background transparent (optional)
     )
 
+
     # Initialize Dash app
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -197,7 +199,7 @@ def get_total_usage_per_adress(loaded_data):
 
     dictionary = {'Adres': addresses, 'Gebruik': usage}
     df = pd.DataFrame(dictionary)
-    return (dictionary, df)
+    return (df)
 
 # Main entry point for the script
 def main():
@@ -205,8 +207,7 @@ def main():
         loaded_data = pickle.load(file)
 
     # Create the df with the total usage per address
-    total_usage_per_adress = get_total_usage_per_adress(loaded_data)[0]
-    df = get_total_usage_per_adress(loaded_data)[1]
+    df = get_total_usage_per_adress(loaded_data)
 
     # Create the scatter heatmap
     df['House_Number'] = df['Adres'].str.extract('(\d+)').astype(int)
