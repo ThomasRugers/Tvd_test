@@ -12,7 +12,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 
-def scatterHeatmap(df, title, subtitle):
+def scatterHeatmap(df):
     # Define grid dimensions for both sections
     x_squares_left = 10  # Left section (larger) with 10 columns
     x_squares_right = 4  # Right section (smaller) with 4 columns
@@ -144,18 +144,22 @@ def scatterHeatmap(df, title, subtitle):
 
     # Update the layout to maintain square shapes for both sections
     fig.update_layout(
-        autosize=True,  # Automatically adjust the figure size
+        autosize=False,  # Manually set the figure size for static images
+        width=2600,  # Set width explicitly for the saved image
+        height=600,  # Set height explicitly for the saved image
+        title='Redemptoristenstraat 01-01-2024 tot 09-01-2024',  # Add title
+        title_x=0.5,  # Center the title
+        title_y=0.95,  # Add some space to ensure the title is visible
+        font=dict(size=15, color="black"),  # Set font size and color
         xaxis=dict(showgrid=False, zeroline=False, visible=False,
-                   range=[0, x_squares_left + x_squares_right + x_offset + 2]),
-        # Adjust x-axis range to fit both sections and the gap
+                   range=[0, x_squares_left + x_squares_right + 2]),
         yaxis=dict(showgrid=False, zeroline=False, visible=False, range=[0, y_squares]),
-        width=None,  # Let Dash handle the width dynamically
-        height=None,  # Let Dash handle the height dynamically
-        title=subtitle,
-        margin=dict(l=10, r=10, t=40, b=10),
-        paper_bgcolor='rgba(0,0,0,0)',  # Make the background transparent (optional)
+        margin=dict(l=10, r=10, t=80, b=10),  # Add more margin on top for the title
+        paper_bgcolor="white",  # Set the background outside the plot to white
+        plot_bgcolor="white",  # Set the plot background to white
     )
 
+    fig.write_image("C:\\Users\\Thomas Rugers\\Desktop\\scatter_heatmap.jpeg", width=2600, height=600)
 
     # Initialize Dash app
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -170,7 +174,7 @@ def scatterHeatmap(df, title, subtitle):
         ),
         dbc.Row([
             dbc.Col([
-                html.H2(title),
+                html.H2("Gebruik per adres"),
                 dcc.Graph(
                     id='grid',
                     figure=fig
@@ -181,6 +185,7 @@ def scatterHeatmap(df, title, subtitle):
 
     # Run the Dash server here (do not add __main__ check inside this function)
     app.run_server(debug=True, port=8051)
+    return fig
 
 
 def get_total_usage_per_adress(loaded_data):
@@ -201,17 +206,19 @@ def get_total_usage_per_adress(loaded_data):
     df = pd.DataFrame(dictionary)
     return (df)
 
+
+
 # Main entry point for the script
 def main():
     with open(r"C:\Users\Thomas Rugers\PycharmProjects\Tvd_test\data_Redemptoristenstraat_2024-01-01-2024-09-01.pkl", 'rb') as file:
         loaded_data = pickle.load(file)
-
     # Create the df with the total usage per address
     df = get_total_usage_per_adress(loaded_data)
 
     # Create the scatter heatmap
     df['House_Number'] = df['Adres'].str.extract('(\d+)').astype(int)
-    scatterHeatmap(df, 'Redemptoristenstraat 01-01-2024 tot 09-01-2024', 'Gebruik per adres')
+    scatterHeatmap(df)
+
 
 
 if __name__ == '__main__':
