@@ -1,4 +1,3 @@
-# This is a sample Python script.
 import pickle
 import pandas as pd
 import numpy as np
@@ -188,6 +187,60 @@ def scatterHeatmap(df):
     return fig
 
 
+def get_weekly_usage_per_address(loaded_data):
+    addresses = []
+    usage = []
+
+    for building in loaded_data.buildings:
+        for house in building.house_list:
+            address = house.street_name + ' ' + house.house_number  # Full address
+            weekly_usage = []  # Store weekly usage per meter
+
+            for meter in house.meters:
+                if meter.meter_type == 'WKV':
+                    units = meter.units_data
+
+                    if not units.empty:
+                        # Convert the index to datetime if it's not already
+                        units.index = pd.to_datetime(units.index)
+
+                        # Resample to weekly and safely compute the difference between the last and first reading
+                        def safe_diff(x):
+                            if len(x) > 1:
+                                return x.iloc[-1] - x.iloc[0]
+                            else:
+                                return 0  # If there is only one or no data points in the week, return 0
+
+                        weekly_data = units.resample('W').apply(safe_diff)
+
+                        # Handle cases where the usage difference is negative or invalid
+                        weekly_data[weekly_data < 0] = 0
+
+                        # Append weekly usage
+                        weekly_usage.append(weekly_data.values.flatten())
+
+            if weekly_usage:
+                # Find the maximum length of weekly usage across all meters
+                max_length = max(len(w) for w in weekly_usage)
+
+                # Pad each usage array with zeros to match the maximum length
+                padded_usage = [np.pad(w, (0, max_length - len(w)), 'constant') for w in weekly_usage]
+
+                # Sum the padded weekly usage across all meters for the house
+                total_weekly_usage = np.sum(padded_usage, axis=0)
+
+                # Append the address and weekly usage
+                for week, usage_value in enumerate(total_weekly_usage):
+                    addresses.append(f"{address} (Week {week + 1})")
+                    usage.append(usage_value)
+
+    # Create a DataFrame for the result
+    df = pd.DataFrame({'Adres': addresses, 'Gebruik': usage})
+
+    return df
+
+
+
 def get_total_usage_per_adress(loaded_data):
     addresses = []
     usage = []
@@ -206,17 +259,19 @@ def get_total_usage_per_adress(loaded_data):
     df = pd.DataFrame(dictionary)
     return (df)
 
-
-
 # Main entry point for the script
 def main():
     with open(r"C:\Users\Thomas Rugers\PycharmProjects\Tvd_test\data_Redemptoristenstraat_2024-01-01-2024-09-01.pkl", 'rb') as file:
         loaded_data = pickle.load(file)
     # Create the df with the total usage per address
     df = get_total_usage_per_adress(loaded_data)
+    df2 = get_weekly_usage_per_address(loaded_data)
 
     # Create the scatter heatmap
     df['House_Number'] = df['Adres'].str.extract('(\d+)').astype(int)
+    df2['House_Number'] = df2['Adres'].str.extract('(\d+)').astype(int)
+    df.to_excel("C:\\Users\\Thomas Rugers\\Desktop\\df.xlsx", index=False)
+    df2.to_excel("C:\\Users\\Thomas Rugers\\Desktop\\df2.xlsx", index=False)
     scatterHeatmap(df)
 
 
