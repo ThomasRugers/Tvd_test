@@ -69,7 +69,7 @@ def scatterHeatmap(df):
             fig.add_annotation(
                 x=i + 0.5,  # Center of the square
                 y=y_squares - j - 0.3,  # Slightly above the center of the square
-                text=f"Gebruik: {gebruik_value}",  # House number
+                text=f"Verbruik: {gebruik_value}",  # House number
                 showarrow=False,
                 font=dict(size=15, color="black")
             )
@@ -128,7 +128,7 @@ def scatterHeatmap(df):
             fig.add_annotation(
                 x=x_squares_left + i + 0.5 + x_offset,  # Center of the square in the right section
                 y=y_squares - j - 0.3 - y_offset,  # Slightly above the center of the square with y_offset
-                text=f"Gebruik: {gebruik_value}",  # House number
+                text=f"Verbruik: {gebruik_value}",  # House number
                 showarrow=False,
                 font=dict(size=15, color="black")
             )
@@ -146,7 +146,7 @@ def scatterHeatmap(df):
         autosize=False,  # Manually set the figure size for static images
         width=2600,  # Set width explicitly for the saved image
         height=600,  # Set height explicitly for the saved image
-        title='Redemptoristenstraat 01-01-2024 tot 09-01-2024',  # Add title
+        title='Redemptoristenstraat, Adressen 143-237, 01-01-2024 tot 09-01-2024',  # Add title
         title_x=0.5,  # Center the title
         title_y=0.95,  # Add some space to ensure the title is visible
         font=dict(size=15, color="black"),  # Set font size and color
@@ -173,7 +173,7 @@ def scatterHeatmap(df):
         ),
         dbc.Row([
             dbc.Col([
-                html.H2("Gebruik per adres"),
+                html.H2("Verbruik per adres"),
                 dcc.Graph(
                     id='grid',
                     figure=fig
@@ -186,6 +186,129 @@ def scatterHeatmap(df):
     app.run_server(debug=True, port=8051)
     return fig
 
+def create_heatmap_for_day_fixed_v2(day, df_day):
+    # Define your left and right addresses sections
+    addresses_left = [219, 221, 223, 225, 227, 229, 231, 233, 235, 237,
+                      217, 215, 213, 211, 209, 207, 205, 203, 201, 199,
+                      171, 173, 175, 177, 179, 181, 183, 185, 187, 189,
+                      169, 167, 165, 163, 161, 159, 157, 155, 153, 151]
+    addresses_right = [191, 193, 195, 197, 149, 147, 145, 143]
+
+    # Create a 2D grid of squares for the day
+    fig = go.Figure()
+
+    # Plot the left section of the building
+    teller = -1
+    for j in range(4):  # Loop over rows
+        for i in range(10):  # Loop over columns for the left section
+            teller += 1
+            if teller >= len(addresses_left):
+                break
+            house_number = addresses_left[teller]
+
+            # Check if the house number exists in the filtered dataframe for this day
+            if house_number in df_day['House_Number'].values:
+                index = df_day[df_day['House_Number'] == house_number].index[0]
+                gebruik_value = df_day.loc[index, 'Gebruik']
+                # Normalize the value to set the color
+                norm_value = (gebruik_value - df_day['Gebruik'].min()) / (df_day['Gebruik'].max() - df_day['Gebruik'].min())
+                color = f"rgb(255, {int(255 * (1 - norm_value))}, {int(255 * (1 - norm_value))})"
+            else:
+                gebruik_value = 0
+                color = "rgb(255,255,255)"  # Force white for house numbers not present
+
+            # Add square shape for left section
+            fig.add_shape(
+                type="rect",
+                x0=i, x1=i + 1,  # Defines the x-axis position
+                y0=4 - j - 1, y1=4 - j,  # Defines the y-axis position
+                fillcolor=color,  # Set color based on "Gebruik"
+                line=dict(color="black")
+            )
+
+            # Add annotation with house number and "Gebruik" value for left section
+            fig.add_annotation(
+                x=i + 0.5,  # Center of the square
+                y=4 - j - 0.3,  # Slightly above the center of the square
+                text=f"Verbruik: {gebruik_value}",  # House number
+                showarrow=False,
+                font=dict(size=15, color="black")
+            )
+
+            fig.add_annotation(
+                x=i + 0.5,  # Center of the square
+                y=4 - j - 0.7,  # Slightly below the center of the square
+                text=f"{house_number}",  # "Gebruik" value
+                showarrow=False,
+                font=dict(size=10, color="black")
+            )
+
+    # Plot the right section of the building
+    teller = -1
+    for j in range(2):  # Loop over rows in the right section
+        for i in range(4):  # Loop over columns for the right section
+            teller += 1
+            if teller >= len(addresses_right):
+                break
+            house_number = addresses_right[teller]
+
+            # Check if the house number exists in the filtered dataframe for this day
+            if house_number in df_day['House_Number'].values:
+                index = df_day[df_day['House_Number'] == house_number].index[0]
+                gebruik_value = df_day.loc[index, 'Gebruik']
+                # Normalize the value to set the color
+                norm_value = (gebruik_value - df_day['Gebruik'].min()) / (df_day['Gebruik'].max() - df_day['Gebruik'].min())
+                color = f"rgb(255, {int(255 * (1 - norm_value))}, {int(255 * (1 - norm_value))})"
+            else:
+                gebruik_value = 0
+                color = "rgb(255,255,255)"  # Force white for house numbers not present
+
+            # Add square shape for right section
+            fig.add_shape(
+                type="rect",
+                x0=10 + i, x1=10 + i + 1,  # Add x_offset to create space
+                y0=4 - j - 1, y1=4 - j,
+                fillcolor=color,  # Set color based on "Gebruik"
+                line=dict(color="black")
+            )
+
+            # Add annotation with house number and "Gebruik" value for right section
+            fig.add_annotation(
+                x=10 + i + 0.5,  # Center of the square in the right section
+                y=4 - j - 0.3,  # Slightly above the center of the square
+                text=f"Verbruik: {gebruik_value}",  # House number
+                showarrow=False,
+                font=dict(size=15, color="black")
+            )
+
+            fig.add_annotation(
+                x=10 + i + 0.5,  # Center of the square in the right section
+                y=4 - j - 0.7,  # Slightly below the center of the square
+                text=f"{house_number}",  # "Gebruik" value
+                showarrow=False,
+                font=dict(size=10, color="black")
+            )
+
+    # Update the layout to maintain square shapes
+    fig.update_layout(
+        autosize=False,  # Manually set the figure size for static images
+        width=2400,  # Set width explicitly for the saved image
+        height=600,  # Set height explicitly for the saved image
+        title=f'Heatmap for {day}',  # Add title
+        title_x=0.5,  # Center the title
+        title_y=0.95,  # Add some space to ensure the title is visible
+        font=dict(size=15, color="black"),  # Set font size and color
+        xaxis=dict(showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(showgrid=False, zeroline=False, visible=False),
+        margin=dict(l=10, r=10, t=80, b=10),  # Add more margin on top for the title
+        paper_bgcolor="white",  # Set the background outside the plot to white
+        plot_bgcolor="white",  # Set the plot background to white
+    )
+
+    # Save the figure as a JPEG image
+    output_path = f'C:/Users/Thomas Rugers/Desktop/Heatmaps/heatmap_{day}.jpeg'
+    fig.write_image(output_path, width=1600, height=600)
+    return output_path
 
 def get_weekly_usage_per_address(loaded_data):
     addresses = []
@@ -211,7 +334,7 @@ def get_weekly_usage_per_address(loaded_data):
                             else:
                                 return 0  # If there is only one or no data points in the week, return 0
 
-                        weekly_data = units.resample('W').apply(safe_diff)
+                        weekly_data = units.resample('D').apply(safe_diff)
 
                         # Handle cases where the usage difference is negative or invalid
                         weekly_data[weekly_data < 0] = 0
@@ -230,16 +353,14 @@ def get_weekly_usage_per_address(loaded_data):
                 total_weekly_usage = np.sum(padded_usage, axis=0)
 
                 # Append the address and weekly usage
-                for week, usage_value in enumerate(total_weekly_usage):
-                    addresses.append(f"{address} (Week {week + 1})")
+                for day, usage_value in enumerate(total_weekly_usage):
+                    addresses.append(f"{address} (Day {day + 1})")
                     usage.append(usage_value)
 
     # Create a DataFrame for the result
     df = pd.DataFrame({'Adres': addresses, 'Gebruik': usage})
 
     return df
-
-
 
 def get_total_usage_per_adress(loaded_data):
     addresses = []
@@ -259,21 +380,70 @@ def get_total_usage_per_adress(loaded_data):
     df = pd.DataFrame(dictionary)
     return (df)
 
+def create_overview_df(loaded_data):
+    # Lijsten om de informatie op te slaan
+    building_names = []
+    house_addresses = []
+    meter_types = []
+    meter_readings = []
+    reading_timestamps = []
+
+    # Loop door de gebouwen in de loaded_data
+    for building in loaded_data.buildings:
+        for house in building.house_list:
+            address = house.street_name + ' ' + house.house_number  # Volledig adres
+            for meter in house.meters:
+                if meter.meter_type == 'WKV':  # Alleen WKV meters toevoegen
+                    # Koppel de meterstanden aan de tijdstempels
+                    units = meter.units_data
+                    if not units.empty:
+                        # Gebruik iterrows() om over de DataFrame te itereren
+                        for timestamp, row in units.iterrows():
+                            # Voeg de gegevens toe aan de respectieve lijsten
+                            building_names.append(building.name)
+                            house_addresses.append(address)
+                            meter_types.append(meter.meter_type)
+                            meter_readings.append(row.values[0])  # De waarde van de meterstand
+                            reading_timestamps.append(timestamp)
+
+    # Maak een dictionary met de verzamelde data
+    data = {
+        'Gebouw': building_names,
+        'Adres': house_addresses,
+        'Meter Type': meter_types,
+        'Meterstand': meter_readings,
+        'Tijdstempel': reading_timestamps
+    }
+
+    # Maak een DataFrame van het overzicht
+    df_overview = pd.DataFrame(data)
+
+    return df_overview
+
 # Main entry point for the script
 def main():
+    # Load the data
     with open(r"C:\Users\Thomas Rugers\PycharmProjects\Tvd_test\data_Redemptoristenstraat_2024-01-01-2024-09-01.pkl", 'rb') as file:
         loaded_data = pickle.load(file)
+
     # Create the df with the total usage per address
     df = get_total_usage_per_adress(loaded_data)
     df2 = get_weekly_usage_per_address(loaded_data)
 
-    # Create the scatter heatmap
-    df['House_Number'] = df['Adres'].str.extract('(\d+)').astype(int)
-    df2['House_Number'] = df2['Adres'].str.extract('(\d+)').astype(int)
-    df.to_excel("C:\\Users\\Thomas Rugers\\Desktop\\df.xlsx", index=False)
-    df2.to_excel("C:\\Users\\Thomas Rugers\\Desktop\\df2.xlsx", index=False)
-    scatterHeatmap(df)
+    # Extract the 'Day' column from 'Adres'
+    df2['Day'] = df2['Adres'].str.extract(r'\(Day (\d+)\)')
 
+    # Extract the house number from 'Adres'
+    df2['House_Number'] = df2['Adres'].str.extract(r'(\d+)').astype(int)
+
+    # Loop through unique days and generate heatmaps
+    heatmap_files_fixed_v2 = []
+    for day in df2['Day'].unique():
+        df_day = df2[df2['Day'] == day]
+        heatmap_files_fixed_v2.append(create_heatmap_for_day_fixed_v2(day, df_day))
+
+    # Create the scatter heatmap
+    scatterHeatmap(df)
 
 
 if __name__ == '__main__':
